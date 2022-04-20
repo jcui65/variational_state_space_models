@@ -4,7 +4,7 @@ from distribution.normal import ConcentrationNormal, MultivariateNormal
 from functools import partial
 import jax
 from typing import Any, NamedTuple
-from jax.tree_util import tree_map, tree_multimap, register_pytree_node_class
+from jax.tree_util import tree_map, register_pytree_node_class
 import jax.numpy as jnp
 from jax.experimental.host_callback import id_print
 from util import vmap_rng, disable_params_grad, clip_gradient, scale_gradient, scale_gradient_norm
@@ -156,7 +156,7 @@ class LSVAE(hk.Module):
         (prior, post), _ = hk.dynamic_unroll(core, (later_meas, inputs), initial)
         # combine initial with propagated uncertainties
         # to get all the filtered covariances
-        combined = tree_multimap(lambda x, y: 
+        combined = tree_map(lambda x, y: 
                     jnp.concatenate((jnp.expand_dims(x, 0),y)),
                                     initial, post)
         return prior, combined
