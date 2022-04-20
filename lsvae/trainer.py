@@ -19,30 +19,30 @@ class LSVAETrainer:
         seed_seq = hk.PRNGSequence(seed)
         def f():
             @partial(hk.jit, static_argnums=(2,3))
-            def run_batch(i, batch, do_extra, is_training):
-                lsvae = self.build_lsvae(i)
+            def run_batch(i, batch, do_extra, is_training):#very important function
+                lsvae = self.build_lsvae(i)#line 15
                 inputs = batch['inputs']
                 meas = dict(batch)
                 del meas['inputs']
 
-                lsvae_res = lsvae.compute(hk.next_rng_key(), 
+                lsvae_res = lsvae.compute(hk.next_rng_key(), #just find a key?
                                 meas, inputs, is_training, [])
                 extra = model_extra(hk.next_rng_key(), batch, lsvae, lsvae_res) \
-                            if do_extra else None
+                            if do_extra else None#see the train file
                 return lsvae_res, extra
 
-            def init(batch):
+            def init(batch):#what batch?
                 _ = run_batch(0, batch, True, True)
             return init, run_batch
 
         f = hk.multi_transform_with_state(f)
         print('initializing')
-        params, state = f.init(next(seed_seq), next(test_data))
+        params, state = f.init(next(seed_seq), next(test_data))#how many parameters to pass in?
         print('initialized')
-        run_batch = f.apply
+        run_batch = f.apply#10 lines later?
 
         #opt = optax.adam(optax.exponential_decay(config.learning_rate, 10000, 0.5))
-        opt = optax.adamw(config.learning_rate)
+        opt = optax.adamw(config.learning_rate)#the adam optimizer in jax?
         # opt = optim_adadelta(0.1)
         #opt = optim_adadelta(config.learning_rate)
         opt_state = opt.init(params)
@@ -52,22 +52,22 @@ class LSVAETrainer:
             def apply(params):
                 (lsvae_res, _), new_state = run_batch(params, state, rng, i, batch, False, True)
                 return lsvae_res['stats']['loss'], (lsvae_res['stats'], new_state)
-            grads, (res, new_state) = jax.grad(apply, has_aux=True)(params)
+            grads, (res, new_state) = jax.grad(apply, has_aux=True)(params)#compute the gradient
 
             #grads = jax.tree_map(lambda x: jnp.clip(x, -500, 500), grads)
-            gn = jax.tree_map(lambda x: grad_norm(x, '2'), grads)
+            gn = jax.tree_map(lambda x: grad_norm(x, '2'), grads)#just a lambda function?
 
             updates, opt_state = opt.update(grads, opt_state, params)
-            new_params = optax.apply_updates(params, updates)
+            new_params = optax.apply_updates(params, updates)#it is like taking the gradient
             return new_params, new_state, opt_state, res, gn
 
-        @jax.jit
+        @jax.jit#as an accelerator
         def evaluate(i, params, state, rng, batch):
             (res, extra), _ = run_batch(params, state, rng, i, batch, True, False)
             return res, extra
 
-        if load is None:
-            print('Pretraining decoder')
+        if load is None:#I may not start from here!
+            print('Pretraining decoder')#decoder is generator
             t = tqdm.tqdm(range(500))
             pretrain_rng = hk.PRNGSequence(next(seed_seq))
 
@@ -93,7 +93,7 @@ class LSVAETrainer:
         else:
             pass
 
-        t = tqdm.tqdm(range(config.iterations))
+        t = tqdm.tqdm(range(config.iterations))#show the progress bar!
 
         val_rng = hk.PRNGSequence(424242)
         train_rng = hk.PRNGSequence(4242)
@@ -112,8 +112,8 @@ class LSVAETrainer:
                 v_sk = next(val_rng)
                 val_batch = next(test_data)
 
-                val_res, val_extra_res = evaluate(10000, params, state, v_sk, val_batch)
-                train_res, train_extra_res = evaluate(10000, params, state, t_sk, batch)
+                val_res, val_extra_res = evaluate(10000, params, state, v_sk, val_batch)#one for val
+                train_res, train_extra_res = evaluate(10000, params, state, t_sk, batch)#one for train
 
                 val_loss = val_res['stats']['loss']
 
@@ -123,7 +123,7 @@ class LSVAETrainer:
                 val_extras = {
                     f'val/{stat}': v for stat, v in val_extra(batch, val_res, val_extra_res).items()
                 }
-                train_extras = {
+                train_extras = {#why called extras?
                     f'val/{stat}': v for stat, v in val_extra(batch, train_res, train_extra_res).items()
                 }
                 wandb.log(val_stats, commit=False)
