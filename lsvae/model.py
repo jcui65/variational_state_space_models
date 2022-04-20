@@ -12,7 +12,7 @@ def build_lsvae(config, i):
     Prior = jnp.array(config.Prior)
     Prior_conc = jnp.linalg.inv(Prior)
 
-    if config.fit_dynamics:
+    if config.fit_dynamics:#see train_lsvae
         A_var = hk.get_parameter("A", A.shape, jnp.float32, lambda s, d: jnp.eye(A.shape[-1]))
         #A_var = A_var.at[0, 0].set(A[0, 0])
         #A_var = A_var.at[1, 1].set(A[1, 1])
@@ -21,16 +21,16 @@ def build_lsvae(config, i):
         A_var = A
         B_var = B
     # the encoder needs a reasonable initialization for the covariance
-    encoder = ConvImageConcentrationEncoder(z_dim,
-                    Prior_conc, config.init_L, config.min_cov)
-    decoder = ConvImageNormalDecoder(channels, config.sigma)
+    encoder = ConvImageConcentrationEncoder(z_dim,#see vae_common\__init__.py
+                    Prior_conc, config.init_L, config.min_cov)#discriminator?
+    decoder = ConvImageNormalDecoder(channels, config.sigma)#generator
     Prior_dist = MultivariateNormal(jnp.zeros(Prior.shape[0]), Prior)
     beta = 1
 
     obs = NonlinearObservationModel('images', encoder, decoder,
             None, 0, 0)
-    models = [obs]
-    if config.with_y:
+    models = [obs]#observation model
+    if config.with_y:#it is/can be from cmd
         if A.shape[-1] == 4:
             y_obs = LinearObservationModel('states', jnp.array([[1, 0, 0, 0], [0, 1, 0, 0]]),
                         0.05*jnp.eye(2), Prior_conc)
