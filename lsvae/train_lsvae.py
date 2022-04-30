@@ -8,7 +8,7 @@ if __name__=="__main__":
 #jax_config.update("jax_enable_x64", True)
 
 import jax
-import wandb#what is this package about?
+import wandb#where do we use it?
 import haiku as hk
 import attrdict
 import jax.numpy as jnp
@@ -179,7 +179,7 @@ def val_extra(batch, res, extra_res):
 
     extra = {#it is another dictionary
         'reconst': wandb.Image(displayed),
-        'samples': wandb.Image(p_z_decoded.copy()),
+        'samples': wandb.Image(np.array(p_z_decoded)),
         'means': means,
         'stds': stds,
         'filter': wandb.Image(fig),

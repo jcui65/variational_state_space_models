@@ -16,8 +16,7 @@ RUN truncate -s0 /tmp/preseed.cfg; \
     rm -rf /var/lib/apt/lists/*
 RUN pip3 install tensorflow tensorflow-datasets six==1.15.0 absl-py==0.12.0 pyparsing==2.4.7
 RUN pip install --upgrade "jax[cuda]" -f https://storage.googleapis.com/jax-releases/jax_releases.html
-RUN pip3 install plotly wandb pillow attrdict matplotlib pycairo
-RUN pip3 install git+git://github.com/deepmind/dm-haiku.git git+git://github.com/deepmind/optax.git
+RUN pip3 install plotly wandb pillow attrdict matplotlib pycairo dm-haiku optax
 RUN pip3 install msgpack-rpc-python i
 RUN pip3 install airsim Pillow
 RUN echo "root:docker" | chpasswd
