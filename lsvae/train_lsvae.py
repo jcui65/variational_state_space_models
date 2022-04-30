@@ -179,7 +179,7 @@ def val_extra(batch, res, extra_res):
 
     extra = {#it is another dictionary
         'reconst': wandb.Image(displayed),
-        'samples': wandb.Image(p_z_decoded.copy()),
+        'samples': wandb.Image(np.array(p_z_decoded)),
         'means': means,
         'stds': stds,
         'filter': wandb.Image(fig),
