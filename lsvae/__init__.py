@@ -122,7 +122,7 @@ class LSVAE(hk.Module):
         self.AT_Sigma_w_inv_A = self.A.T @ self.Sigma_w_inv @ self.A
 
     def _filter(self, qzx_qz, inputs):
-        # qzx_qz is a stack of T * n_meas
+        # qzx_qz is a stack of T * n_meas#equation 8!
         # concentration normal distributions/qz
         first_update = tree_map(lambda x: x[0], qzx_qz)
         # initial p(z_1|X_1) distribution
@@ -140,16 +140,16 @@ class LSVAE(hk.Module):
             # propagate the state
             mu = self.A @ prev_mu + self.B @ jnp.expand_dims(u_prev, -1) \
                         if u_prev is not None else \
-                    self.A @ prev_mu
-            cov =  self.A @ prev_cov @ self.A.T + self.Sigma_w
-            conc = jnp.linalg.inv(cov)
+                    self.A @ prev_mu#at the bottom of page 6
+            cov =  self.A @ prev_cov @ self.A.T + self.Sigma_w#page 7 up?
+            conc = jnp.linalg.inv(cov)#page 7 up?
             inf = conc @ mu
 
             # convert to concentration normal distribution
             prop_state = ConcentrationNormal(inf.squeeze(-1), conc)
 
             # convert measurements to updates
-            new_state = ConcentrationNormal.pdf_prod_update(prop_state, qzx_qzs)
+            new_state = ConcentrationNormal.pdf_prod_update(prop_state, qzx_qzs)#is it 7 or 4?
             return (prop_state, new_state), new_state
 
         # recursively compute the future covariances
