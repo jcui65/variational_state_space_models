@@ -8,7 +8,7 @@ if __name__=="__main__":
 #jax_config.update("jax_enable_x64", True)
 
 import jax
-import wandb
+import wandb#what is this package about?
 import haiku as hk
 import attrdict
 import jax.numpy as jnp
